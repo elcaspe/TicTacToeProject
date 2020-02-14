@@ -1,0 +1,46 @@
+@charset "ISO-8859-1";
+@import url('https://fonts.googleapis.com/css?family=Finger+Paint&display=swap');
+
+body {
+	background-color: #b3ffff;
+}
+
+#board {
+	width: 350px !important;
+	height: 350px !important;
+	table-layout:fixed;
+}
+
+.table-bordered td {
+	border: 10px solid green;
+	text-align: center;
+    vertical-align: middle;
+    font-size: 100px;
+    font-family: 'Finger Paint', cursive;
+    color: red;
+    line-height: 0px;
+	padding-top: 0px;
+}
+
+h1,h3 {
+	font-family: "Comic Sans MS", cursive, sans-serif;
+}
+
+#gameTitle {
+	font-family: 'Finger Paint', cursive;
+	color: red;
+}
+
+#winner {
+	color: red;
+}
+
+#scoreBoard th, #scoreBoard td {
+	border: 3px solid green;
+}
+
+#scoreBoard td {
+	font-size: 20px;
+	font-family: "Comic Sans MS", cursive, sans-serif;
+	height: 50px;
+}

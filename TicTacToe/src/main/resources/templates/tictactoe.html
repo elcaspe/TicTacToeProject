@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Tic Tac Toe by Lizandro</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="/css/style.css" />
+</head>
+
+<body>
+    <div class="wrapper" style="padding-top: 50px">
+        <div class="container">
+            <h1 style="text-align: center; padding-bottom: 10px" id="gameTitle">Tic Tac Toe</h1>
+            <div class="row justify-content-center">
+                <div class="col-4">
+                    <h3 style="text-align: center;">Player 1</h3>
+                    <div class="form-group">
+                        <input class="form-control" placeholder="Enter player 1 name" id="player1Name">
+                    </div>
+                    <div class="form-group">
+                        <label>Enter cell number and press ENTER</label>
+                        <input type="text" class="form-control" id="inputPlayer1">
+                    </div>
+                </div>
+                <div class="col-4">
+                    <table class="table table-bordered" id="board">
+                        <tr>
+                            <td id="cell1"></td>
+                            <td id="cell2"></td>
+                            <td id="cell3"></td>
+                        </tr>
+                        <tr>
+                            <td id="cell4"></td>
+                            <td id="cell5"></td>
+                            <td id="cell6"></td>
+                        </tr>
+                        <tr>
+                            <td id="cell7"></td>
+                            <td id="cell8"></td>
+                            <td id="cell9"></td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="col-4">
+                    <h3 style="text-align: center;">Player 2</h3>
+                    <div class="form-group">
+                        <input class="form-control" placeholder="Enter player 2 name" id="player2Name">
+                    </div>
+                    <div class="form-group">
+                        <label>Enter cell number and press ENTER</label>
+                        <input type="text" class="form-control" id="inputPlayer2" disabled>
+                    </div>
+                </div>
+            </div>
+            <h3 style="text-align: center;" id="activePlayer"></h3>
+            <div class="text-center" id="resultSection" style="display: none">
+            	<h1 id="winner" style="margin-bottom: 20px"></h1>
+            	<button type="button" class="btn btn-primary" id="buttonPlayAgain" style="margin-right: 20px">PLAY AGAIN</button>
+            	<a href="/TicTacToe/high-scores" target="_blank">View high scores</a>
+            </div>
+
+        </div>
+    </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $('input').on('keypress', function(e) {
+            	$('#activePlayer').text("");
+            	$('#activePlayer').show();
+            	if (this.id == "inputPlayer1" || this.id == "inputPlayer2") {
+            		if ($('#player1Name').val() == "" || $('#player2Name').val() == "") {
+            			alert("Input players name!");
+            			return false;
+            		}
+            		
+            		$('#player1Name,#player2Name').prop('disabled', true);
+            		
+                    if (e.which == 13) {
+                    	if (isNaN(this.value) || this.value < 1 || this.value > 9) {
+                    		alert("Out of range. Input number 1 to 9 only.");
+                    		return false;
+                    	}
+                    	
+                    	var cellId = "#cell" + this.value;
+                    	if ($(cellId).get(0).innerHTML === '') {
+                    		if (this.id == "inputPlayer1") {
+                            	$(cellId).get(0).innerHTML = 'x';
+                            	$('#inputPlayer2').prop('disabled', false);
+                            	$('#inputPlayer2').focus();
+                            	$('#activePlayer').text($('#player2Name').val() + "'s turn!");
+                            } else {
+                            	$(cellId).get(0).innerHTML = 'o';
+                            	$('#inputPlayer1').prop('disabled', false);
+                            	$('#inputPlayer1').focus();
+                            	$('#activePlayer').text($('#player1Name').val() + "'s turn!");
+                            }
+                    	} else {
+                    		alert("Cell already chosen.");
+                    		return false;
+                    	}	
+                        
+                        postBoard();
+
+                        $(this).val("");
+                        $(this).prop('disabled',  true);
+                    }
+            	}
+            });
+            
+            $('#buttonPlayAgain').on('click', function() {
+            	for (i=1; i<=9; i++) {
+            		$('#cell'+i).get(0).innerHTML = "";
+            	}
+            	$('table td').css('background-color', 'transparent');
+            	$('#inputPlayer1').prop('disabled', false);
+            	$('#inputPlayer2').prop('disabled', true);
+            	$('#inputPlayer1').focus();
+            	$('#resultSection').hide();
+            });
+
+            function postBoard() {
+                var data = {
+                    1: $('#cell1').get(0).innerHTML,
+                    2: $('#cell2').get(0).innerHTML,
+                    3: $('#cell3').get(0).innerHTML,
+                    4: $('#cell4').get(0).innerHTML,
+                    5: $('#cell5').get(0).innerHTML,
+                    6: $('#cell6').get(0).innerHTML,
+                    7: $('#cell7').get(0).innerHTML,
+                    8: $('#cell8').get(0).innerHTML,
+                    9: $('#cell9').get(0).innerHTML
+                };
+
+                $.ajax({
+                    url: "/TicTacToe/postBoard",
+                    data: data,
+                    type: "POST",
+                    success: function(reply) {
+                        if (reply.winningPlayer !== null) {
+                            render(reply.winningSet, reply.winningPlayer);
+                            $('#activePlayer').hide();
+                            $('#resultSection').show();
+                            $('#inputPlayer1,#inputPlayer2').prop('disabled', true);
+                            if (reply.winningPlayer === "x") {
+                            	$('#winner').text($('#player1Name').val() + " WINS!");
+                            	console.log($('#player1Name').val());
+                            	savePlayer($('#player1Name').val());
+                            } else {
+                            	$('#winner').text($('#player2Name').val() + " WINS!");
+                            	savePlayer($('#player2Name').val());
+                            }
+                        }
+
+                        if (reply.winningPlayer === null && reply.isTableFull) {
+                        	$('#activePlayer').hide();
+                        	$('#resultSection').show();
+                        	$('#inputPlayer1,#inputPlayer2').prop('disabled', true);
+                        	$('#winner').text("DRAW");
+                        }
+                    }
+                });
+            }
+            
+            function savePlayer(playerName) {
+            	$.ajax({
+            		url: "/TicTacToe/save",
+            		data: {
+            			playerName: playerName
+            		},
+            		type: 'POST'
+            	});
+            }
+
+            function render(winningSet, winningPlayer) {
+            	var bgColor = "yellow";
+                switch (winningSet) {
+                    case "S123":
+                        $('#cell1,#cell2,#cell3').css('background-color', bgColor);
+                        break;
+                    case "S456":
+                        $('#cell4,#cell5,#cell6').css('background-color', bgColor);
+                        break;
+                    case "S789":
+                        $('#cell7,#cell8,#cell9').css('background-color', bgColor);
+                        break;
+                    case "S147":
+                        $('#cell1,#cell4,#cell7').css('background-color', bgColor);
+                        break;
+                    case "S258":
+                        $('#cell2,#cell5,#cell8').css('background-color', bgColor);
+                        break;
+                    case "S369":
+                        $('#cell3,#cell6,#cell9').css('background-color', bgColor);
+                        break;
+                    case "S159":
+                        $('#cell1,#cell5,#cell9').css('background-color', bgColor);
+                        break;
+                    case "S357":
+                        $('#cell3,#cell5,#cell7').css('background-color', bgColor);
+                        break;
+                    default:
+                        break;
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>
